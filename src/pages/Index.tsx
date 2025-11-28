@@ -37,7 +37,7 @@ const Index = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (screenshots.length === 0 || !username) {
       toast({
         title: "Ошибка ⚠️",
@@ -46,11 +46,42 @@ const Index = () => {
       });
       return;
     }
-    setStep('waiting');
-    toast({
-      title: "Заявка отправлена! 🚀",
-      description: "Ожидайте 3 дня для проверки",
-    });
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/8e680639-d064-40ac-bf8b-7d2721e5100c', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tariff_id: selectedTariff,
+          username: username,
+          telegram_user_id: Date.now()
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStep('waiting');
+        toast({
+          title: "Заявка отправлена! 🚀",
+          description: "Ожидайте 3 дня для проверки",
+        });
+      } else {
+        toast({
+          title: "Ошибка ⚠️",
+          description: "Не удалось отправить заявку",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка ⚠️",
+        description: "Проблема с подключением",
+        variant: "destructive"
+      });
+    }
   };
 
   const selectedTariffData = tariffs.find(t => t.id === selectedTariff);
